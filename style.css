@@ -30,11 +30,223 @@ body {
   gap: 24px;
 }
 
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 header h1 {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--text);
+}
+
+/* Main tab switcher */
+.main-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.main-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 7px 18px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.main-tab:hover { color: var(--text); }
+
+.main-tab.active {
+  background: var(--accent);
+  color: white;
+}
+
+/* =====================
+   Scale display
+   ===================== */
+.scale-display {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.scale-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.scale-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.scale-title-en {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.scale-key-badge {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f59e0b;
+  margin-left: auto;
+}
+
+.scale-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.scale-use {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.scale-use strong {
+  color: var(--text);
+}
+
+.scale-body {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* Degree column */
+.scale-degrees {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 80px;
+}
+
+.scale-degree-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sd-deg {
+  font-size: 0.78rem;
+  font-weight: 700;
+  width: 28px;
+  text-align: right;
+}
+
+.sd-note {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 28px;
+}
+
+.sd-root {
+  color: #f59e0b !important;
+}
+
+/* Instrument area */
+.scale-instrument {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Fretboard */
+.fretboard-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scale-fretboard {
+  display: block;
+}
+
+.fretboard-legend {
+  display: flex;
+  gap: 14px;
+}
+
+.fb-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.fb-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Scale notes row */
+.scale-notes-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.scale-note-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  min-width: 42px;
+}
+
+.scale-note-chip.root {
+  border-color: #f59e0b;
+  background: rgba(245,158,11,0.1);
+}
+
+.snc-deg {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.scale-note-chip.root .snc-deg { color: #f59e0b; }
+
+.snc-note {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.scale-note-sep {
+  color: var(--border);
+  font-size: 1.2rem;
 }
 
 /* Controls */

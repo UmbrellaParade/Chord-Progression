@@ -83,6 +83,99 @@ function getChordInversions(key, degreeIndex) {
   });
 }
 
+// ---- Scales & Modes ----
+const SCALE_CATEGORIES = [
+  { id: 'mode',  label: 'モード' },
+  { id: 'penta', label: 'ペンタトニック' },
+  { id: 'blues', label: 'ブルース' },
+];
+
+const SCALES = [
+  // --- Modes ---
+  {
+    id: 'ionian', name: 'メジャー', nameEn: 'Ionian',
+    intervals: [0,2,4,5,7,9,11], category: 'mode', color: '#4ade80',
+    degrees: ['1','2','3','4','5','6','7'],
+    desc: '明るく安定した基本スケール。ポップス・クラシックの土台。',
+    use: 'Pop / Classical / Rock',
+  },
+  {
+    id: 'dorian', name: 'ドリアン', nameEn: 'Dorian',
+    intervals: [0,2,3,5,7,9,10], category: 'mode', color: '#60a5fa',
+    degrees: ['1','2','♭3','4','5','6','♭7'],
+    desc: 'マイナーだが6度が長音程で少し明るさがある。ジャズ・フュージョンの定番。',
+    use: 'Jazz / Fusion / Rock',
+  },
+  {
+    id: 'phrygian', name: 'フリジアン', nameEn: 'Phrygian',
+    intervals: [0,1,3,5,7,8,10], category: 'mode', color: '#a78bfa',
+    degrees: ['1','♭2','♭3','4','5','♭6','♭7'],
+    desc: '♭2度が生み出す独特の緊張感と異国情緒。フラメンコ・メタルに多用。',
+    use: 'Flamenco / Metal / Film',
+  },
+  {
+    id: 'lydian', name: 'リディアン', nameEn: 'Lydian',
+    intervals: [0,2,4,6,7,9,11], category: 'mode', color: '#fbbf24',
+    degrees: ['1','2','3','♯4','5','6','7'],
+    desc: '♯4度が浮遊感と神秘的な明るさを演出。映画音楽・ドリームポップに。',
+    use: 'Film Score / Dream Pop / Fusion',
+  },
+  {
+    id: 'mixolydian', name: 'ミクソリディアン', nameEn: 'Mixolydian',
+    intervals: [0,2,4,5,7,9,10], category: 'mode', color: '#fb923c',
+    degrees: ['1','2','3','4','5','6','♭7'],
+    desc: 'メジャーに♭7を加えたブルージーな渋さ。ロック・カントリーに最頻出。',
+    use: 'Rock / Blues / Country / Funk',
+  },
+  {
+    id: 'aeolian', name: 'ナチュラルマイナー', nameEn: 'Aeolian',
+    intervals: [0,2,3,5,7,8,10], category: 'mode', color: '#94a3b8',
+    degrees: ['1','2','♭3','4','5','♭6','♭7'],
+    desc: '暗く哀愁ある基本マイナースケール。ポップスのマイナー進行の基礎。',
+    use: 'Pop / Rock / Metal',
+  },
+  {
+    id: 'locrian', name: 'ロクリアン', nameEn: 'Locrian',
+    intervals: [0,1,3,5,6,8,10], category: 'mode', color: '#f87171',
+    degrees: ['1','♭2','♭3','4','♭5','♭6','♭7'],
+    desc: '最も不安定なモード。♭5がVIIm7♭5コードに対応。ジャズ理論で重要。',
+    use: 'Jazz / Progressive / Metal',
+  },
+  // --- Pentatonic ---
+  {
+    id: 'major_penta', name: 'メジャーペンタトニック', nameEn: 'Major Pentatonic',
+    intervals: [0,2,4,7,9], category: 'penta', color: '#34d399',
+    degrees: ['1','2','3','5','6'],
+    desc: '5音で構成されるシンプルで明るいスケール。どのキーでも使いやすい万能スケール。',
+    use: 'Pop / Country / Rock / J-Pop',
+  },
+  {
+    id: 'minor_penta', name: 'マイナーペンタトニック', nameEn: 'Minor Pentatonic',
+    intervals: [0,3,5,7,10], category: 'penta', color: '#38bdf8',
+    degrees: ['1','♭3','4','5','♭7'],
+    desc: 'ロック・ブルースのギターソロの定番。5音なのでどこで弾いても外れにくい。',
+    use: 'Rock / Blues / Metal',
+  },
+  // --- Blues ---
+  {
+    id: 'blues', name: 'ブルーススケール', nameEn: 'Blues Scale',
+    intervals: [0,3,5,6,7,10], category: 'blues', color: '#c084fc',
+    degrees: ['1','♭3','4','♭5','5','♭7'],
+    desc: 'マイナーペンタに♭5（ブルーノート）を追加。このノートが独特の「泣き」と「うなり」を生む。',
+    use: 'Blues / Rock / Jazz',
+  },
+];
+
+function getScaleNotes(key, intervals) {
+  const rootIndex = CHROMATIC.indexOf(keyToChromatic(key));
+  return intervals.map(interval => {
+    const idx = (rootIndex + interval) % 12;
+    let note = CHROMATIC[idx];
+    if (FLAT_KEYS.has(key) && FLAT_NAMES[note]) note = FLAT_NAMES[note];
+    return note;
+  });
+}
+
 // ---- Presets ----
 const PRESETS = [
   {

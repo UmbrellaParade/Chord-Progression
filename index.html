@@ -10,12 +10,27 @@
   <div class="app">
     <header>
       <h1>Chord Progression Trainer</h1>
+      <div class="main-tabs">
+        <button class="main-tab active" data-view="chords">🎵 コード進行</button>
+        <button class="main-tab" data-view="scales">🎼 スケール</button>
+      </div>
     </header>
 
+    <!-- Shared: key + display toggle -->
     <section class="controls">
-      <div class="control-group">
-        <label>コード進行</label>
+      <div class="control-group" id="presetGroup">
+        <label id="presetLabel">コード進行</label>
         <div class="preset-buttons" id="presetButtons"></div>
+      </div>
+
+      <div class="control-group" id="scaleCategoryGroup" style="display:none">
+        <label>カテゴリ</label>
+        <div class="preset-buttons" id="scaleCategoryButtons"></div>
+      </div>
+
+      <div class="control-group" id="scaleSelectGroup" style="display:none">
+        <label>スケール</label>
+        <div class="preset-buttons" id="scaleButtons"></div>
       </div>
 
       <div class="control-group">
@@ -35,11 +50,18 @@
       </div>
     </section>
 
-    <section class="progression-display" id="progressionDisplay"></section>
+    <!-- Chord Progression View -->
+    <div id="chordsView">
+      <section class="progression-display" id="progressionDisplay"></section>
+      <section class="detail-panel" id="detailPanel">
+        <p class="detail-hint">コードをクリックして詳細を表示</p>
+      </section>
+    </div>
 
-    <section class="detail-panel" id="detailPanel">
-      <p class="detail-hint">コードをクリックして詳細を表示</p>
-    </section>
+    <!-- Scale View -->
+    <div id="scalesView" style="display:none">
+      <section class="scale-display" id="scaleDisplay"></section>
+    </div>
   </div>
 
   <script src="chords.js"></script>

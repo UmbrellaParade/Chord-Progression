@@ -4,18 +4,39 @@ let state = {
   mode: 'guitar',
   selectedDegree: null,
   selectedInversion: 0,
+  view: 'chords',            // 'chords' | 'scales'
+  scaleCategory: 'mode',
+  scale: SCALES[0],
 };
 
 function init() {
   renderPresets();
   renderKeys();
   renderProgression();
+  renderScaleCategories();
+  renderScaleButtons();
+
   document.getElementById('randomKey').addEventListener('click', () => {
     const idx = Math.floor(Math.random() * KEYS.length);
     setKey(KEYS[idx]);
   });
   document.getElementById('modeGuitar').addEventListener('click', () => setMode('guitar'));
   document.getElementById('modePiano').addEventListener('click', () => setMode('piano'));
+
+  document.querySelectorAll('.main-tab').forEach(tab => {
+    tab.addEventListener('click', () => setView(tab.dataset.view));
+  });
+}
+
+function setView(v) {
+  state.view = v;
+  document.querySelectorAll('.main-tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
+  document.getElementById('chordsView').style.display  = v === 'chords' ? '' : 'none';
+  document.getElementById('scalesView').style.display  = v === 'scales' ? '' : 'none';
+  document.getElementById('presetGroup').style.display         = v === 'chords' ? '' : 'none';
+  document.getElementById('scaleCategoryGroup').style.display  = v === 'scales' ? '' : 'none';
+  document.getElementById('scaleSelectGroup').style.display    = v === 'scales' ? '' : 'none';
+  if (v === 'scales') renderScaleDisplay();
 }
 
 function renderPresets() {
@@ -59,14 +80,22 @@ function setKey(k) {
   state.selectedDegree = null;
   state.selectedInversion = 0;
   renderKeys();
-  renderProgression();
-  clearDetail();
+  if (state.view === 'chords') {
+    renderProgression();
+    clearDetail();
+  } else {
+    renderScaleDisplay();
+  }
 }
 
 function setMode(m) {
   state.mode = m;
   document.querySelectorAll('.toggle').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
-  if (state.selectedDegree !== null) showDetail(state.selectedDegree, state.selectedInversion);
+  if (state.view === 'chords') {
+    if (state.selectedDegree !== null) showDetail(state.selectedDegree, state.selectedInversion);
+  } else {
+    renderScaleDisplay();
+  }
 }
 
 function renderProgression() {
@@ -356,6 +385,209 @@ function renderPianoKeys(chordNotes, bassNote) {
         <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>ベース音</span>
       </div>
     </div>`;
+}
+
+// =====================================================
+// ---- Scale Section ----
+// =====================================================
+
+function renderScaleCategories() {
+  const container = document.getElementById('scaleCategoryButtons');
+  container.innerHTML = '';
+  SCALE_CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-preset' + (cat.id === state.scaleCategory ? ' active' : '');
+    btn.textContent = cat.label;
+    btn.addEventListener('click', () => {
+      state.scaleCategory = cat.id;
+      const first = SCALES.find(s => s.category === cat.id);
+      if (first) state.scale = first;
+      renderScaleCategories();
+      renderScaleButtons();
+      renderScaleDisplay();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function renderScaleButtons() {
+  const container = document.getElementById('scaleButtons');
+  container.innerHTML = '';
+  SCALES.filter(s => s.category === state.scaleCategory).forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-preset' + (s.id === state.scale.id ? ' active' : '');
+    btn.innerHTML = `<span style="color:${s.color};font-size:0.7em">●</span> ${s.name}`;
+    btn.title = s.nameEn;
+    btn.addEventListener('click', () => {
+      state.scale = s;
+      renderScaleButtons();
+      renderScaleDisplay();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function renderScaleDisplay() {
+  const panel = document.getElementById('scaleDisplay');
+  const { scale, key, mode } = state;
+  const notes = getScaleNotes(key, scale.intervals);
+  const rootNote = notes[0];
+
+  const degreeRows = scale.degrees.map((deg, i) => `
+    <div class="scale-degree-row">
+      <span class="sd-deg" style="color:${i === 0 ? '#f59e0b' : scale.color}">${deg}</span>
+      <span class="sd-note${i === 0 ? ' sd-root' : ''}">${notes[i]}</span>
+    </div>
+  `).join('');
+
+  const instrument = mode === 'guitar'
+    ? renderScaleFretboard(key, scale.intervals, scale.color)
+    : renderScalePianoFull(notes, rootNote, scale.color);
+
+  panel.innerHTML = `
+    <div class="scale-header">
+      <span class="scale-title" style="color:${scale.color}">${scale.name}</span>
+      <span class="scale-title-en">${scale.nameEn}</span>
+      <span class="scale-key-badge">${key}</span>
+    </div>
+    <p class="scale-desc">${scale.desc}</p>
+    <div class="scale-use">使用ジャンル: <strong>${scale.use}</strong></div>
+
+    <div class="scale-body">
+      <div class="scale-degrees">${degreeRows}</div>
+      <div class="scale-instrument">${instrument}</div>
+    </div>
+
+    <div class="scale-notes-row">
+      ${notes.map((n, i) => `
+        <div class="scale-note-chip${i === 0 ? ' root' : ''}" style="${i === 0 ? '' : `border-color:${scale.color}40`}">
+          <span class="snc-deg">${scale.degrees[i]}</span>
+          <span class="snc-note">${n}</span>
+        </div>
+      `).join('<span class="scale-note-sep">·</span>')}
+    </div>
+  `;
+}
+
+// ---- Scale Fretboard ----
+// String tuning: low E to high E in semitones from C
+const FRET_TUNING = [4, 9, 2, 7, 11, 4]; // E A D G B e
+const FRET_STRING_NAMES = ['E', 'A', 'D', 'G', 'B', 'e'];
+
+function renderScaleFretboard(key, intervals, accentColor) {
+  const rootSemi = CHROMATIC.indexOf(keyToChromatic(key));
+  const scaleSet  = new Set(intervals.map(i => (rootSemi + i) % 12));
+
+  const FRETS = 12;
+  const fw = 40, fh = 30;
+  const padL = 28, padT = 24, padB = 22;
+  const totalW = padL + FRETS * fw;
+  const totalH = padT + 5 * fh + padB;
+
+  let svg = `<svg class="scale-fretboard" width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}">`;
+
+  // Fret position markers (3, 5, 7, 9, 12)
+  [3,5,7,9,12].forEach(f => {
+    const x = padL + (f - 0.5) * fw;
+    const y = totalH - padB + 6;
+    svg += `<text x="${x}" y="${y}" text-anchor="middle" fill="#475569" font-size="10">${f}</text>`;
+    // faint dot marker between strings 3 and 4
+    if (f !== 12) {
+      svg += `<circle cx="${x}" cy="${padT + 2.5 * fh}" r="4" fill="#1e293b"/>`;
+    } else {
+      // double dot at 12
+      svg += `<circle cx="${x}" cy="${padT + 1.5 * fh}" r="4" fill="#1e293b"/>`;
+      svg += `<circle cx="${x}" cy="${padT + 3.5 * fh}" r="4" fill="#1e293b"/>`;
+    }
+  });
+
+  // Nut
+  svg += `<rect x="${padL - 3}" y="${padT}" width="4" height="${5 * fh}" rx="2" fill="#94a3b8"/>`;
+
+  // Fret lines
+  for (let f = 1; f <= FRETS; f++) {
+    const x = padL + f * fw;
+    svg += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + 5 * fh}" stroke="#334155" stroke-width="1"/>`;
+  }
+
+  // String lines + labels
+  for (let s = 0; s < 6; s++) {
+    const y = padT + s * fh;
+    const thickness = 1 + (5 - s) * 0.4;
+    svg += `<line x1="${padL}" y1="${y}" x2="${totalW}" y2="${y}" stroke="#475569" stroke-width="${thickness}"/>`;
+    svg += `<text x="${padL - 6}" y="${y + 4}" text-anchor="end" fill="#64748b" font-size="10">${FRET_STRING_NAMES[s]}</text>`;
+  }
+
+  // Note dots
+  for (let s = 0; s < 6; s++) {
+    for (let f = 0; f <= FRETS; f++) {
+      const noteSemi = (FRET_TUNING[s] + f) % 12;
+      if (!scaleSet.has(noteSemi)) continue;
+      const isRoot = noteSemi === rootSemi;
+      const cx = f === 0 ? padL - 16 : padL + (f - 0.5) * fw;
+      const cy = padT + s * fh;
+      const dotColor = isRoot ? '#f59e0b' : accentColor;
+      svg += `<circle cx="${cx}" cy="${cy}" r="11" fill="${dotColor}" opacity="0.92"/>`;
+      let noteName = CHROMATIC[noteSemi];
+      if (FLAT_KEYS.has(state.key) && FLAT_NAMES[noteName]) noteName = FLAT_NAMES[noteName];
+      const fontSize = noteName.length > 2 ? 7 : 9;
+      svg += `<text cx="${cx}" cy="${cy}" x="${cx}" y="${cy + 3}" text-anchor="middle" fill="white" font-size="${fontSize}" font-weight="bold">${noteName}</text>`;
+    }
+  }
+
+  svg += '</svg>';
+
+  return `<div class="fretboard-wrap">
+    <div class="fretboard-legend">
+      <span class="fb-legend-item"><span class="fb-dot" style="background:#f59e0b"></span>ルート音</span>
+      <span class="fb-legend-item"><span class="fb-dot" style="background:${accentColor}"></span>スケール音</span>
+    </div>
+    <div style="overflow-x:auto">${svg}</div>
+  </div>`;
+}
+
+// ---- Scale Piano (full 2-octave) ----
+function renderScalePianoFull(scaleNotes, rootNote, accentColor) {
+  const highlighted = new Set(scaleNotes.map(n => ENHARMONIC[n] || n));
+  const rootNorm    = ENHARMONIC[rootNote] || rootNote;
+
+  const whiteKeys = ['C','D','E','F','G','A','B','C','D','E','F','G','A','B'];
+  const kw = 34, kh = 110;
+  const totalW = whiteKeys.length * kw;
+  let whites = '', blacks = '';
+
+  whiteKeys.forEach((note, i) => {
+    const isAct  = highlighted.has(note);
+    const isRoot = isAct && note === rootNorm;
+    const fill   = isRoot ? '#f59e0b' : isAct ? accentColor : '#f1f5f9';
+    whites += `<rect x="${i*kw}" y="0" width="${kw-2}" height="${kh}" rx="3" fill="${fill}" stroke="#334155" stroke-width="1"/>`;
+    if (isAct) whites += `<text x="${i*kw+kw/2-1}" y="${kh-10}" text-anchor="middle" fill="white" font-size="10" font-weight="bold">${note}</text>`;
+  });
+
+  const blackOffsets = [0.6,1.6,3.6,4.6,5.6];
+  const blackNotes   = ['C#','D#','F#','G#','A#'];
+  const bkw = 22, bkh = 68;
+  [0,7].forEach(off => {
+    blackOffsets.forEach((boff, bi) => {
+      const note   = blackNotes[bi];
+      const isAct  = highlighted.has(note);
+      const isRoot = isAct && note === rootNorm;
+      const fill   = isRoot ? '#f59e0b' : isAct ? accentColor : '#1e293b';
+      const x      = (off + boff) * kw - bkw/2;
+      blacks += `<rect x="${x}" y="0" width="${bkw}" height="${bkh}" rx="2" fill="${fill}" stroke="#0f172a" stroke-width="1"/>`;
+      if (isAct) blacks += `<text x="${x+bkw/2}" y="${bkh-6}" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${note.replace('#','♯')}</text>`;
+    });
+  });
+
+  return `<div style="overflow-x:auto">
+    <svg width="${totalW}" height="${kh}" viewBox="0 0 ${totalW} ${kh}" class="piano-svg">
+      ${whites}${blacks}
+    </svg>
+    <div class="piano-legend" style="margin-top:8px">
+      <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>ルート音</span>
+      <span class="legend-item"><span class="legend-dot" style="background:${accentColor}"></span>スケール音</span>
+    </div>
+  </div>`;
 }
 
 document.addEventListener('DOMContentLoaded', init);
