@@ -88,6 +88,9 @@ const SCALE_CATEGORIES = [
   { id: 'mode',  label: 'モード' },
   { id: 'penta', label: 'ペンタトニック' },
   { id: 'blues', label: 'ブルース' },
+  { id: 'japan', label: '🇯🇵 日本' },
+  { id: 'world', label: '🌏 ワールド' },
+  { id: 'other', label: '理論系' },
 ];
 
 const SCALES = [
@@ -163,6 +166,96 @@ const SCALES = [
     degrees: ['1','♭3','4','♭5','5','♭7'],
     desc: 'マイナーペンタに♭5（ブルーノート）を追加。このノートが独特の「泣き」と「うなり」を生む。',
     use: 'Blues / Rock / Jazz',
+  },
+
+  // --- 日本のスケール ---
+  {
+    id: 'miyakobushi', name: '都節音階', nameEn: 'Miyako-bushi',
+    intervals: [0,1,5,7,8], category: 'japan', color: '#fb7185',
+    degrees: ['1','♭2','4','5','♭6'],
+    desc: '江戸時代の三味線・琴から生まれた最も「和風」なスケール。♭2と♭6が哀愁と緊張を生む。',
+    use: '邦楽 / 演歌 / J-Pop和風アレンジ',
+  },
+  {
+    id: 'ryukyu', name: '沖縄音階', nameEn: 'Ryukyu Scale',
+    intervals: [0,4,5,7,11], category: 'japan', color: '#22d3ee',
+    degrees: ['1','3','4','5','7'],
+    desc: '沖縄・琉球音楽の明るいスケール。長3度と長7度が独特の南国感と開放感を演出。',
+    use: '沖縄民謡 / ポップス和風',
+  },
+  {
+    id: 'yosen', name: '陽旋法', nameEn: 'Yo Scale',
+    intervals: [0,2,5,7,9], category: 'japan', color: '#a3e635',
+    degrees: ['1','2','4','5','6'],
+    desc: '日本の民謡・わらべ歌に使われる明るいペンタトニック。全音と4度の動きが日本的な柔らかさを生む。',
+    use: '日本民謡 / 童謡',
+  },
+
+  // --- ワールドスケール ---
+  {
+    id: 'hijaz', name: 'ヒジャーズ', nameEn: 'Hijaz (Phrygian Dominant)',
+    intervals: [0,1,4,5,7,8,10], category: 'world', color: '#fcd34d',
+    degrees: ['1','♭2','3','4','5','♭6','♭7'],
+    desc: '中東・フラメンコの象徴的サウンド。♭2と長3度の増2度音程が強烈な「エキゾチック感」を生む。',
+    use: 'Middle Eastern / Flamenco / Indian / Turkish',
+  },
+  {
+    id: 'doubleharmonic', name: 'ダブルハーモニック', nameEn: 'Double Harmonic (Byzantine)',
+    intervals: [0,1,4,5,7,8,11], category: 'world', color: '#f97316',
+    degrees: ['1','♭2','3','4','5','♭6','7'],
+    desc: '「インド＋中東」の凝縮サウンド。♭2、長3度、♭6、長7度が共存する最も「異国感」の強いスケール。',
+    use: 'Indian Classical / Middle Eastern / Byzantine',
+  },
+  {
+    id: 'harmonicminor', name: 'ハーモニックマイナー', nameEn: 'Harmonic Minor',
+    intervals: [0,2,3,5,7,8,11], category: 'world', color: '#818cf8',
+    degrees: ['1','2','♭3','4','5','♭6','7'],
+    desc: 'ナチュラルマイナーの7度を半音上げたスケール。♭6と7の増2度音程がドラマチックな緊張感を生む。',
+    use: 'Classical / Metal / Middle Eastern / Gypsy',
+  },
+  {
+    id: 'hungarianminor', name: 'ハンガリーマイナー', nameEn: 'Hungarian Minor',
+    intervals: [0,2,3,6,7,8,11], category: 'world', color: '#e879f9',
+    degrees: ['1','2','♭3','♯4','5','♭6','7'],
+    desc: 'ハーモニックマイナーの4度を♯4にしたスケール。♭3と♯4の増2度が東欧ジプシー音楽の情熱的な響きを生む。',
+    use: 'Gypsy / Eastern European / Metal / Flamenco',
+  },
+  {
+    id: 'persian', name: 'ペルシアン', nameEn: 'Persian',
+    intervals: [0,1,4,5,6,8,11], category: 'world', color: '#4ade80',
+    degrees: ['1','♭2','3','4','♭5','♭6','7'],
+    desc: 'ペルシャ・イラン音楽由来。♭2、♭5、長7度が混在し、他のどのスケールとも違う独自の緊張と神秘感を持つ。',
+    use: 'Persian / Middle Eastern / Film Score',
+  },
+  {
+    id: 'enigmatic', name: 'エニグマティック', nameEn: 'Enigmatic Scale',
+    intervals: [0,1,4,6,8,10,11], category: 'world', color: '#06b6d4',
+    degrees: ['1','♭2','3','♯4','♯5','♯6','7'],
+    desc: 'ヴェルディが考案した謎めいたスケール。全音音程が続く独自の浮遊感と未知の宇宙感を演出する。',
+    use: 'Contemporary Classical / Film Score / Experimental',
+  },
+
+  // --- 理論系スケール ---
+  {
+    id: 'wholetone', name: 'ホールトーン', nameEn: 'Whole Tone',
+    intervals: [0,2,4,6,8,10], category: 'other', color: '#67e8f9',
+    degrees: ['1','2','3','♯4','♯5','♭7'],
+    desc: '全て全音で構成された6音スケール。長調でも短調でもない曖昧な浮遊感が特徴。ドビュッシーが多用。',
+    use: 'Impressionism / Jazz / Film',
+  },
+  {
+    id: 'diminished_hw', name: 'ディミニッシュ（半-全）', nameEn: 'Diminished (H-W)',
+    intervals: [0,1,3,4,6,7,9,10], category: 'other', color: '#f43f5e',
+    degrees: ['1','♭2','♭3','3','♭5','5','6','♭7'],
+    desc: '半音・全音を交互に繰り返す8音スケール。対称性から転調がしやすく、ジャズのアウトフレーズに多用。',
+    use: 'Jazz / Metal / Contemporary',
+  },
+  {
+    id: 'altered', name: 'オルタード', nameEn: 'Altered Scale',
+    intervals: [0,1,3,4,6,8,10], category: 'other', color: '#ff6b6b',
+    degrees: ['1','♭2','♭3','3','♭5','♭6','♭7'],
+    desc: 'ジャズのV7コード上で使う超テンションスケール。全ての音が変化音（♭9、♯9、♭5、♯5）を含む。',
+    use: 'Jazz / Bebop / Fusion',
   },
 ];
 
