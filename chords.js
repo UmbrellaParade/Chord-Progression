@@ -6,6 +6,10 @@ const FLAT_NAMES = { 'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb' 
 
 const FLAT_KEYS = new Set(['F', 'Bb', 'Eb', 'Ab', 'Db']);
 
+// Bb/Eb/Ab/Db/Gb は CHROMATIC に存在しないので A#/D#/G#/C#/F# に変換してから indexOf する
+const FLAT_TO_SHARP = { 'Bb': 'A#', 'Eb': 'D#', 'Ab': 'G#', 'Db': 'C#', 'Gb': 'F#' };
+function keyToChromatic(key) { return FLAT_TO_SHARP[key] || key; }
+
 // Major scale intervals (semitones from root)
 const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11];
 
@@ -26,7 +30,7 @@ const FUNCTION_LABELS = {
 
 // degree: 0-based index (0=I, 1=II, ...)
 function getChordName(key, degreeIndex, useLower) {
-  const rootIndex = CHROMATIC.indexOf(key);
+  const rootIndex = CHROMATIC.indexOf(keyToChromatic(key));
   const noteIndex = (rootIndex + MAJOR_SCALE[degreeIndex]) % 12;
   let note = CHROMATIC[noteIndex];
   if (FLAT_KEYS.has(key) && FLAT_NAMES[note]) note = FLAT_NAMES[note];
@@ -47,7 +51,7 @@ const CHORD_INTERVALS = {
 };
 
 function getChordNotes(key, degreeIndex) {
-  const rootIndex = CHROMATIC.indexOf(key);
+  const rootIndex = CHROMATIC.indexOf(keyToChromatic(key));
   const scaleRoot = (rootIndex + MAJOR_SCALE[degreeIndex]) % 12;
   const q = DIATONIC_QUALITY[degreeIndex];
   return CHORD_INTERVALS[q].map(interval => {
