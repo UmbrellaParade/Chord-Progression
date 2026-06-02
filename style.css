@@ -358,6 +358,46 @@ header h1 {
   line-height: 1.6;
 }
 
+.diagram-pos {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+/* Piano voicing note order */
+.piano-voicing {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.pv-note {
+  background: var(--surface2);
+  border: 1px solid #6366f1;
+  color: #a5b4fc;
+  border-radius: 6px;
+  padding: 3px 10px;
+}
+
+.pv-note.pv-bass {
+  border-color: #f59e0b;
+  color: #fcd34d;
+}
+
+.pv-arrow {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
 /* Piano legend */
 .piano-legend {
   display: flex;

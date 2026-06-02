@@ -113,48 +113,188 @@ const PRESETS = [
   },
 ];
 
-// ---- Guitar chord diagrams (simplified, most common voicings) ----
-// Format: { fret, fingers: [[string1-6, fret]] } string 1=高音E, 6=低音E
-// We store for each root note and quality
-// Simplified: only natural keys and a few common voicings
-// frets: array of 6, null=mute, 0=open, n=fret number
-// barre: optional barre fret
+// ---- Guitar chord diagrams with all inversions ----
+// frets: [lowE, A, D, G, B, highE]  null=mute, 0=open, n=fret
+// Each entry is an array: [root, 1st inv, 2nd inv, (3rd inv for 7ths)]
+// label: bass note for each inversion (shown on diagram)
 
-const GUITAR_VOICINGS = {
-  // Open chords
-  'C':    { frets: [null,3,2,0,1,0], barre: null },
-  'Dm':   { frets: [null,null,0,2,3,1], barre: null },
-  'Em':   { frets: [0,2,2,0,0,0], barre: null },
-  'F':    { frets: [1,1,2,3,3,1], barre: 1 },
-  'G':    { frets: [3,2,0,0,0,3], barre: null },
-  'Am':   { frets: [null,0,2,2,1,0], barre: null },
-  'Bdim': { frets: [null,2,0,1,3,null], barre: null },
-  // Sharp/flat roots as barre chords
-  'D':    { frets: [null,null,0,2,3,2], barre: null },
-  'Bm':   { frets: [null,2,4,4,3,2], barre: 2 },
-  'F#m':  { frets: [2,2,4,4,3,2], barre: 2 },
-  'A':    { frets: [null,0,2,2,2,0], barre: null },
-  'E':    { frets: [0,2,2,1,0,0], barre: null },
-  'C#m':  { frets: [null,4,6,6,5,4], barre: 4 },
-  'G#m':  { frets: [null,null,6,8,8,6], barre: 6 },
-  'B':    { frets: [null,2,4,4,4,2], barre: 2 },
-  'F#':   { frets: [2,4,4,3,2,2], barre: 2 },
-  'Bb':   { frets: [null,1,3,3,3,1], barre: 1 },
-  'Gm':   { frets: [null,null,5,3,3,3], barre: 3 },
-  'Eb':   { frets: [null,null,1,3,4,3], barre: null },
-  'Ab':   { frets: [null,null,6,5,4,4], barre: 4 },
-  'Db':   { frets: [null,4,3,1,2,null], barre: null },
-  'G7':   { frets: [1,0,0,0,2,3], barre: null },
-  'D7':   { frets: [null,null,0,2,1,2], barre: null },
-  'A7':   { frets: [null,0,2,0,2,0], barre: null },
-  'E7':   { frets: [0,2,0,1,0,0], barre: null },
-  'B7':   { frets: [null,2,1,2,0,2], barre: null },
-  'C7':   { frets: [null,3,2,3,1,0], barre: null },
-  'F7':   { frets: [1,1,2,1,3,1], barre: 1 },
+const GUITAR_INV_VOICINGS = {
+  // --- C major (C-E-G) ---
+  'C': [
+    { frets: [null,3,2,0,1,0], barre: null, pos: 'Open' },   // 根音形  C bass
+    { frets: [0,3,2,0,1,0],   barre: null, pos: 'Open' },    // 1st inv  E bass
+    { frets: [3,3,2,0,1,0],   barre: null, pos: '3fr' },     // 2nd inv  G bass
+  ],
+  // --- Dm (D-F-A) ---
+  'Dm': [
+    { frets: [null,null,0,2,3,1], barre: null, pos: 'Open' }, // 根音形  D bass
+    { frets: [1,null,0,2,3,1],   barre: null, pos: '1fr' },   // 1st inv  F bass
+    { frets: [null,0,0,2,3,1],   barre: null, pos: 'Open' },  // 2nd inv  A bass
+  ],
+  // --- Em (E-G-B) ---
+  'Em': [
+    { frets: [0,2,2,0,0,0],    barre: null, pos: 'Open' },   // 根音形  E bass
+    { frets: [3,2,2,0,0,0],    barre: null, pos: '3fr' },    // 1st inv  G bass
+    { frets: [null,2,2,0,0,0], barre: null, pos: 'Open' },   // 2nd inv  B bass
+  ],
+  // --- F major (F-A-C) ---
+  'F': [
+    { frets: [1,1,2,3,3,1],    barre: 1,    pos: '1fr' },    // 根音形  F bass
+    { frets: [null,0,3,2,1,1], barre: null, pos: 'Open' },   // 1st inv  A bass
+    { frets: [null,3,3,2,1,1], barre: null, pos: '3fr' },    // 2nd inv  C bass
+  ],
+  // --- G major (G-B-D) ---
+  'G': [
+    { frets: [3,2,0,0,0,3],    barre: null, pos: 'Open' },   // 根音形  G bass
+    { frets: [null,2,0,0,0,3], barre: null, pos: 'Open' },   // 1st inv  B bass
+    { frets: [null,null,0,0,0,3], barre: null, pos: 'Open' },// 2nd inv  D bass
+  ],
+  // --- G7 (G-B-D-F) ---
+  'G7': [
+    { frets: [3,2,0,0,0,1],    barre: null, pos: 'Open' },   // 根音形  G bass
+    { frets: [null,2,0,0,0,1], barre: null, pos: 'Open' },   // 1st inv  B bass
+    { frets: [null,null,0,0,0,1], barre: null, pos: 'Open' },// 2nd inv  D bass
+    { frets: [1,2,0,0,0,1],    barre: null, pos: '1fr' },    // 3rd inv  F bass
+  ],
+  // --- Am (A-C-E) ---
+  'Am': [
+    { frets: [null,0,2,2,1,0], barre: null, pos: 'Open' },   // 根音形  A bass
+    { frets: [null,3,2,2,1,0], barre: null, pos: '3fr' },    // 1st inv  C bass
+    { frets: [0,0,2,2,1,0],   barre: null, pos: 'Open' },    // 2nd inv  E bass
+  ],
+  // --- Bdim (B-D-F) ---
+  'Bdim': [
+    { frets: [null,2,3,4,3,null], barre: null, pos: '2fr' }, // 根音形  B bass
+    { frets: [null,null,0,4,0,1], barre: null, pos: 'Open' },// 1st inv  D bass
+    { frets: [1,null,null,4,3,null], barre: null, pos: '1fr' },// 2nd inv  F bass
+  ],
+  // --- D major (D-F#-A) ---
+  'D': [
+    { frets: [null,null,0,2,3,2], barre: null, pos: 'Open' },// 根音形  D bass
+    { frets: [null,null,4,2,3,2], barre: null, pos: '2fr' }, // 1st inv  F# bass
+    { frets: [null,0,0,2,3,2],   barre: null, pos: 'Open' }, // 2nd inv  A bass
+  ],
+  // --- A major (A-C#-E) ---
+  'A': [
+    { frets: [null,0,2,2,2,0], barre: null, pos: 'Open' },   // 根音形  A bass
+    { frets: [null,4,2,2,2,0], barre: null, pos: '2fr' },    // 1st inv  C# bass
+    { frets: [0,0,2,2,2,0],   barre: null, pos: 'Open' },    // 2nd inv  E bass
+  ],
+  // --- E major (E-G#-B) ---
+  'E': [
+    { frets: [0,2,2,1,0,0],    barre: null, pos: 'Open' },   // 根音形  E bass
+    { frets: [4,2,2,1,0,0],    barre: null, pos: '2fr' },    // 1st inv  G# bass
+    { frets: [null,2,2,1,0,0], barre: null, pos: 'Open' },   // 2nd inv  B bass
+  ],
+  // --- B major (B-D#-F#) ---
+  'B': [
+    { frets: [null,2,4,4,4,2], barre: 2, pos: '2fr' },       // 根音形  B bass
+    { frets: [null,null,4,4,4,2], barre: null, pos: '2fr' }, // 1st inv  D# bass (D string fret4=F#? no...)
+    { frets: [null,2,4,4,4,null], barre: 2, pos: '2fr' },    // 2nd inv  F# bass
+  ],
+  // --- Bm (B-D-F#) ---
+  'Bm': [
+    { frets: [null,2,4,4,3,2], barre: 2, pos: '2fr' },       // 根音形  B bass
+    { frets: [null,null,0,4,3,2], barre: null, pos: 'Open' },// 1st inv  D bass (D open)
+    { frets: [2,2,4,4,3,null], barre: 2, pos: '2fr' },       // 2nd inv  F# bass
+  ],
+  // --- F# major (F#-A#-C#) ---
+  'F#': [
+    { frets: [2,4,4,3,2,2], barre: 2, pos: '2fr' },          // 根音形  F# bass
+    { frets: [null,null,4,3,2,2], barre: null, pos: '2fr' }, // 1st inv  A# bass
+    { frets: [null,4,4,3,2,null], barre: null, pos: '2fr' }, // 2nd inv  C# bass
+  ],
+  // --- F#m (F#-A-C#) ---
+  'F#m': [
+    { frets: [2,2,4,4,3,2], barre: 2, pos: '2fr' },          // 根音形
+    { frets: [null,null,4,4,3,2], barre: null, pos: '2fr' }, // 1st inv  A bass
+    { frets: [null,2,4,4,3,null], barre: 2, pos: '2fr' },    // 2nd inv  C# bass
+  ],
+  // --- Bb major (Bb-D-F) ---
+  'Bb': [
+    { frets: [null,1,3,3,3,1], barre: 1, pos: '1fr' },       // 根音形  Bb bass
+    { frets: [null,null,3,3,3,1], barre: null, pos: '1fr' }, // 1st inv  D bass
+    { frets: [null,1,3,3,null,null], barre: null, pos: '1fr' },// 2nd inv  F bass
+  ],
+  // --- Gm (G-Bb-D) ---
+  'Gm': [
+    { frets: [3,5,5,3,3,3], barre: 3, pos: '3fr' },          // 根音形  G bass
+    { frets: [null,null,5,3,3,3], barre: 3, pos: '3fr' },    // 1st inv  Bb bass
+    { frets: [null,5,5,3,3,null], barre: 3, pos: '3fr' },    // 2nd inv  D bass
+  ],
+  // --- Eb major (Eb-G-Bb) ---
+  'Eb': [
+    { frets: [null,null,1,3,4,3], barre: null, pos: '1fr' }, // 根音形  Eb bass
+    { frets: [null,null,null,3,4,3], barre: null, pos: '3fr' },// 1st inv  G bass
+    { frets: [null,1,1,3,4,null], barre: 1, pos: '1fr' },    // 2nd inv  Bb bass
+  ],
+  // --- Ab major (Ab-C-Eb) ---
+  'Ab': [
+    { frets: [4,4,6,6,6,4], barre: 4, pos: '4fr' },          // 根音形  Ab bass
+    { frets: [null,null,6,6,6,4], barre: null, pos: '4fr' }, // 1st inv  C bass
+    { frets: [null,4,6,6,null,null], barre: null, pos: '4fr' },// 2nd inv  Eb bass
+  ],
+  // --- Db major (Db-F-Ab) ---
+  'Db': [
+    { frets: [null,4,6,6,6,4], barre: 4, pos: '4fr' },       // 根音形  Db bass
+    { frets: [null,null,6,6,6,4], barre: null, pos: '4fr' }, // 1st inv  F bass
+    { frets: [null,4,6,6,null,null], barre: 4, pos: '4fr' }, // 2nd inv  Ab bass
+  ],
+  // --- C#m (C#-E-G#) ---
+  'C#m': [
+    { frets: [null,4,6,6,5,4], barre: 4, pos: '4fr' },       // 根音形
+    { frets: [null,null,6,6,5,4], barre: null, pos: '4fr' }, // 1st inv  E bass
+    { frets: [null,4,6,6,null,null], barre: 4, pos: '4fr' }, // 2nd inv  G# bass
+  ],
+  // --- G#m (G#-B-D#) ---
+  'G#m': [
+    { frets: [4,6,6,4,4,4], barre: 4, pos: '4fr' },          // 根音形
+    { frets: [null,null,6,4,4,4], barre: 4, pos: '4fr' },    // 1st inv  B bass
+    { frets: [null,6,6,4,4,null], barre: 4, pos: '4fr' },    // 2nd inv  D# bass
+  ],
+  // --- 7th chords ---
+  'D7': [
+    { frets: [null,null,0,2,1,2], barre: null, pos: 'Open' },// 根音形
+    { frets: [null,null,4,2,1,2], barre: null, pos: '2fr' }, // 1st inv  F# bass
+    { frets: [null,0,0,2,1,2],   barre: null, pos: 'Open' }, // 2nd inv  A bass
+    { frets: [null,null,0,2,1,0], barre: null, pos: 'Open' },// 3rd inv  C bass
+  ],
+  'A7': [
+    { frets: [null,0,2,0,2,0], barre: null, pos: 'Open' },   // 根音形
+    { frets: [null,4,2,0,2,0], barre: null, pos: 'Open' },   // 1st inv  C# bass
+    { frets: [0,0,2,0,2,0],   barre: null, pos: 'Open' },    // 2nd inv  E bass
+    { frets: [null,0,2,0,2,null], barre: null, pos: 'Open' },// 3rd inv  G bass
+  ],
+  'E7': [
+    { frets: [0,2,0,1,0,0], barre: null, pos: 'Open' },      // 根音形
+    { frets: [4,2,0,1,0,0], barre: null, pos: 'Open' },      // 1st inv  G# bass
+    { frets: [null,2,0,1,0,0], barre: null, pos: 'Open' },   // 2nd inv  B bass
+    { frets: [null,null,0,1,0,0], barre: null, pos: 'Open' },// 3rd inv  D bass
+  ],
+  'B7': [
+    { frets: [null,2,1,2,0,2], barre: null, pos: '1fr' },    // 根音形
+    { frets: [null,null,1,2,0,2], barre: null, pos: '1fr' }, // 1st inv  D# bass
+    { frets: [null,2,1,2,0,null], barre: null, pos: '1fr' }, // 2nd inv  F# bass
+    { frets: [null,null,null,2,0,2], barre: null, pos: '2fr' },// 3rd inv A bass
+  ],
+  'C7': [
+    { frets: [null,3,2,3,1,0], barre: null, pos: '1fr' },    // 根音形
+    { frets: [0,3,2,3,1,0],   barre: null, pos: 'Open' },    // 1st inv  E bass
+    { frets: [3,3,2,3,1,0],   barre: null, pos: '3fr' },     // 2nd inv  G bass
+    { frets: [null,null,2,3,1,2], barre: null, pos: '1fr' }, // 3rd inv  Bb bass
+  ],
+  'F7': [
+    { frets: [1,1,2,1,3,1], barre: 1, pos: '1fr' },          // 根音形
+    { frets: [null,0,2,1,3,1], barre: null, pos: '1fr' },    // 1st inv  A bass
+    { frets: [null,3,2,1,3,1], barre: null, pos: '1fr' },    // 2nd inv  C bass
+    { frets: [null,null,2,1,3,null], barre: null, pos: '1fr' },// 3rd inv Eb bass
+  ],
 };
 
-function getGuitarVoicing(chordName) {
-  if (GUITAR_VOICINGS[chordName]) return GUITAR_VOICINGS[chordName];
-  // fallback: try without suffix for simplified display
-  return null;
+// Returns voicing for chordName at inversionIndex (0=root, 1=1st, ...)
+function getGuitarVoicing(chordName, inversionIndex) {
+  const invList = GUITAR_INV_VOICINGS[chordName];
+  if (!invList) return null;
+  const idx = Math.min(inversionIndex, invList.length - 1);
+  return invList[idx] || invList[0];
 }
