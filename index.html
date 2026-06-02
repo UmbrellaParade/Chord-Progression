@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chord Progression Trainer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Chord Progression Trainer</h1>
+    </header>
+
+    <section class="controls">
+      <div class="control-group">
+        <label>コード進行</label>
+        <div class="preset-buttons" id="presetButtons"></div>
+      </div>
+
+      <div class="control-group">
+        <label>キー</label>
+        <div class="key-row">
+          <div class="key-buttons" id="keyButtons"></div>
+          <button class="btn-random" id="randomKey">🎲 ランダム</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>表示</label>
+        <div class="toggle-buttons">
+          <button class="toggle active" data-mode="guitar" id="modeGuitar">🎸 ギター</button>
+          <button class="toggle" data-mode="piano" id="modePiano">🎹 ピアノ</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="progression-display" id="progressionDisplay"></section>
+
+    <section class="detail-panel" id="detailPanel">
+      <p class="detail-hint">コードをクリックして詳細を表示</p>
+    </section>
+  </div>
+
+  <script src="chords.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
