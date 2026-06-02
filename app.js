@@ -3,6 +3,7 @@ let state = {
   key: 'C',
   mode: 'guitar',
   selectedDegree: null,
+  selectedInversion: 0,
 };
 
 function init() {
@@ -20,18 +21,24 @@ function init() {
 function renderPresets() {
   const container = document.getElementById('presetButtons');
   container.innerHTML = '';
-  PRESETS.forEach(p => {
+  PRESETS.forEach((p, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'preset-item';
+
     const btn = document.createElement('button');
     btn.className = 'btn-preset' + (p.id === state.preset.id ? ' active' : '');
-    btn.textContent = p.name;
+    btn.innerHTML = `<span class="preset-num">${i + 1}</span>${p.name}`;
+    btn.title = p.desc;
     btn.addEventListener('click', () => {
       state.preset = p;
       state.selectedDegree = null;
+      state.selectedInversion = 0;
       renderPresets();
       renderProgression();
       clearDetail();
     });
-    container.appendChild(btn);
+    wrap.appendChild(btn);
+    container.appendChild(wrap);
   });
 }
 
@@ -50,6 +57,7 @@ function renderKeys() {
 function setKey(k) {
   state.key = k;
   state.selectedDegree = null;
+  state.selectedInversion = 0;
   renderKeys();
   renderProgression();
   clearDetail();
@@ -58,12 +66,21 @@ function setKey(k) {
 function setMode(m) {
   state.mode = m;
   document.querySelectorAll('.toggle').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
-  if (state.selectedDegree !== null) showDetail(state.selectedDegree);
+  if (state.selectedDegree !== null) showDetail(state.selectedDegree, state.selectedInversion);
 }
 
 function renderProgression() {
   const container = document.getElementById('progressionDisplay');
   container.innerHTML = '';
+
+  const descEl = document.createElement('p');
+  descEl.className = 'preset-desc';
+  descEl.textContent = state.preset.desc;
+  container.appendChild(descEl);
+
+  const cardsRow = document.createElement('div');
+  cardsRow.className = 'cards-row';
+
   state.preset.degrees.forEach((degIdx, i) => {
     const chordName = getChordName(state.key, degIdx, false);
     const degreeName = DEGREE_NAMES[degIdx];
@@ -82,42 +99,77 @@ function renderProgression() {
     `;
     card.addEventListener('click', () => {
       state.selectedDegree = i;
+      state.selectedInversion = 0;
       document.querySelectorAll('.chord-card').forEach((c, idx) =>
         c.classList.toggle('selected', idx === i));
-      showDetail(i);
+      showDetail(i, 0);
     });
-    container.appendChild(card);
+    cardsRow.appendChild(card);
 
     if (i < state.preset.degrees.length - 1) {
       const arrow = document.createElement('div');
       arrow.className = 'arrow';
       arrow.textContent = '→';
-      container.appendChild(arrow);
+      cardsRow.appendChild(arrow);
     }
   });
+
+  container.appendChild(cardsRow);
 }
 
-function showDetail(cardIndex) {
+function showDetail(cardIndex, inversionIndex) {
   state.selectedDegree = cardIndex;
+  state.selectedInversion = inversionIndex;
   const degIdx = state.preset.degrees[cardIndex];
   const chordName = getChordName(state.key, degIdx, false);
-  const notes = getChordNotes(state.key, degIdx);
+  const inversions = getChordInversions(state.key, degIdx);
+  const currentInv = inversions[inversionIndex];
   const panel = document.getElementById('detailPanel');
+
+  // Inversion tabs
+  const tabsHTML = inversions.map((inv, i) => `
+    <button class="inv-tab${i === inversionIndex ? ' active' : ''}" data-inv="${i}">
+      <span class="inv-tab-name">${inv.name}</span>
+      <span class="inv-tab-notes">${inv.notes.join('-')}</span>
+    </button>
+  `).join('');
+
+  // Bass note annotation for non-root inversions
+  const bassLabel = inversionIndex > 0
+    ? `<span class="bass-label">${chordName}/${currentInv.bassNote}</span>`
+    : '';
 
   let instrumentHTML = '';
   if (state.mode === 'guitar') {
-    instrumentHTML = renderGuitarDiagram(chordName);
+    // For inversions on guitar, show note info only (diagrams are root-position voicings)
+    if (inversionIndex === 0) {
+      instrumentHTML = renderGuitarDiagram(chordName);
+    } else {
+      instrumentHTML = `<div class="inversion-note-display">
+        <div class="inv-notes-row">${currentInv.notes.map((n, ni) =>
+          `<div class="inv-note${ni === 0 ? ' bass' : ''}">${n}${ni === 0 ? '<span class="bass-tag">Bass</span>' : ''}</div>`
+        ).join('<span class="inv-sep">→</span>')}</div>
+        <p class="guitar-inv-hint">ギターでは転回形のフォームはコードにより様々。<br>構成音の積み順を意識して練習しましょう。</p>
+      </div>`;
+    }
   } else {
-    instrumentHTML = renderPianoKeys(notes);
+    instrumentHTML = renderPianoKeys(currentInv.notes, currentInv.bassNote);
   }
 
   panel.innerHTML = `
     <div class="detail-header">
       <span class="detail-chord">${chordName}</span>
-      <span class="detail-notes">構成音: ${notes.join(' - ')}</span>
+      ${bassLabel}
     </div>
+    <div class="inv-tabs">${tabsHTML}</div>
     ${instrumentHTML}
   `;
+
+  panel.querySelectorAll('.inv-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      showDetail(cardIndex, parseInt(btn.dataset.inv));
+    });
+  });
 }
 
 function clearDetail() {
@@ -134,7 +186,6 @@ function renderGuitarDiagram(chordName) {
   const { frets, barre } = voicing;
   const activeFrets = frets.filter(f => f !== null && f > 0);
   const minFret = activeFrets.length ? Math.min(...activeFrets) : 1;
-  const maxFret = activeFrets.length ? Math.max(...activeFrets) : 4;
   const displayMin = barre ? barre : Math.max(1, minFret);
   const fretRange = 4;
 
@@ -145,32 +196,27 @@ function renderGuitarDiagram(chordName) {
 
   let svg = `<svg class="guitar-diagram" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
 
-  // Nut or fret position indicator
   if (displayMin === 1) {
     svg += `<line x1="${padding}" y1="${padding}" x2="${padding + (strings-1)*cellW}" y2="${padding}" stroke="#e2e8f0" stroke-width="4"/>`;
   } else {
     svg += `<text x="${padding - 4}" y="${padding + cellH * 0.6}" text-anchor="end" fill="#94a3b8" font-size="12">${displayMin}fr</text>`;
   }
 
-  // Fret lines
   for (let f = 0; f <= fretRange; f++) {
     const y = padding + f * cellH;
     svg += `<line x1="${padding}" y1="${y}" x2="${padding + (strings-1)*cellW}" y2="${y}" stroke="#334155" stroke-width="1"/>`;
   }
 
-  // String lines
   for (let s = 0; s < strings; s++) {
     const x = padding + s * cellW;
     svg += `<line x1="${x}" y1="${padding}" x2="${x}" y2="${padding + fretRange*cellH}" stroke="#475569" stroke-width="1.5"/>`;
   }
 
-  // Barre
   if (barre) {
     const y = padding + (barre - displayMin + 0.5) * cellH;
     svg += `<rect x="${padding - 8}" y="${y - 10}" width="${(strings-1)*cellW + 16}" height="20" rx="10" fill="#6366f1" opacity="0.85"/>`;
   }
 
-  // Dots
   frets.forEach((f, i) => {
     const x = padding + (strings - 1 - i) * cellW;
     if (f === null) {
@@ -190,15 +236,13 @@ function renderGuitarDiagram(chordName) {
 }
 
 // ---- Piano Keys ----
-const ALL_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const BLACK_NOTES = new Set(['C#', 'D#', 'F#', 'G#', 'A#']);
-// enharmonic map
 const ENHARMONIC = { 'Db':'C#', 'Eb':'D#', 'Gb':'F#', 'Ab':'G#', 'Bb':'A#' };
 
-function renderPianoKeys(chordNotes) {
-  const highlighted = new Set(chordNotes.map(n => ENHARMONIC[n] || n));
+function renderPianoKeys(chordNotes, bassNote) {
+  const noteList = chordNotes.map(n => ENHARMONIC[n] || n);
+  const highlighted = new Set(noteList);
+  const bassNorm = ENHARMONIC[bassNote] || bassNote;
 
-  // Show 2 octaves C4-B5
   const whiteKeys = ['C','D','E','F','G','A','B','C','D','E','F','G','A','B'];
   const kw = 34, kh = 110;
   const totalW = whiteKeys.length * kw;
@@ -207,25 +251,31 @@ function renderPianoKeys(chordNotes) {
 
   whiteKeys.forEach((note, i) => {
     const isActive = highlighted.has(note);
+    const isBass = isActive && note === bassNorm;
+    const fill = isBass ? '#f59e0b' : isActive ? '#818cf8' : '#f1f5f9';
     whites += `<rect x="${i*kw}" y="0" width="${kw-2}" height="${kh}" rx="3"
-      fill="${isActive ? '#818cf8' : '#f1f5f9'}" stroke="#334155" stroke-width="1"/>`;
+      fill="${fill}" stroke="#334155" stroke-width="1"/>`;
     if (isActive) {
       whites += `<text x="${i*kw + kw/2 - 1}" y="${kh - 10}" text-anchor="middle" fill="white" font-size="10" font-weight="bold">${note}</text>`;
     }
+    if (isBass) {
+      whites += `<text x="${i*kw + kw/2 - 1}" y="${kh - 22}" text-anchor="middle" fill="white" font-size="8">低</text>`;
+    }
   });
 
-  // Black keys layout per octave: C#=0.6, D#=1.6, F#=3.6, G#=4.6, A#=5.6
   const blackOffsets = [0.6, 1.6, 3.6, 4.6, 5.6];
   const blackNoteNames = ['C#','D#','F#','G#','A#'];
   const bkw = 22, bkh = 68;
 
-  [0, 7].forEach((octaveOffset, oct) => {
+  [0, 7].forEach((octaveOffset) => {
     blackOffsets.forEach((offset, bi) => {
       const x = (octaveOffset + offset) * kw - bkw / 2;
       const note = blackNoteNames[bi];
       const isActive = highlighted.has(note);
+      const isBass = isActive && note === bassNorm;
+      const fill = isBass ? '#f59e0b' : isActive ? '#818cf8' : '#1e293b';
       blacks += `<rect x="${x}" y="0" width="${bkw}" height="${bkh}" rx="2"
-        fill="${isActive ? '#818cf8' : '#1e293b'}" stroke="#0f172a" stroke-width="1"/>`;
+        fill="${fill}" stroke="#0f172a" stroke-width="1"/>`;
       if (isActive) {
         blacks += `<text x="${x + bkw/2}" y="${bkh - 6}" text-anchor="middle" fill="white" font-size="9" font-weight="bold">${note}</text>`;
       }
@@ -237,6 +287,10 @@ function renderPianoKeys(chordNotes) {
       <svg width="${totalW}" height="${kh}" viewBox="0 0 ${totalW} ${kh}" class="piano-svg">
         ${whites}${blacks}
       </svg>
+      <div class="piano-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#818cf8"></span>構成音</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>最低音（ベース音）</span>
+      </div>
     </div>`;
 }
 

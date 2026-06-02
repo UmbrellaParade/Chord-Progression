@@ -58,35 +58,58 @@ function getChordNotes(key, degreeIndex) {
   });
 }
 
+// Returns all inversions as arrays of note names (root pos + all inversions)
+const INVERSION_NAMES = [
+  ['根音形', 'Root Position'],
+  ['第1転回形', '1st Inversion'],
+  ['第2転回形', '2nd Inversion'],
+  ['第3転回形', '3rd Inversion'],
+];
+
+function getChordInversions(key, degreeIndex) {
+  const notes = getChordNotes(key, degreeIndex);
+  return notes.map((_, i) => {
+    const inv = [...notes.slice(i), ...notes.slice(0, i)];
+    return {
+      name: INVERSION_NAMES[i][0],
+      nameEn: INVERSION_NAMES[i][1],
+      notes: inv,
+      bassNote: inv[0],
+    };
+  });
+}
+
 // ---- Presets ----
 const PRESETS = [
   {
-    id: 'canon',
-    name: 'カノン進行',
-    degrees: [0, 4, 5, 2, 3, 0, 3, 4],
-    // I - V - VI - III - IV - I - IV - V
-  },
-  {
-    id: 'twofivelone',
-    name: 'ii-V-I',
-    degrees: [1, 4, 0],
-  },
-  {
-    id: 'royal',
-    name: '王道進行',
-    // IV - V - III - VI
-    degrees: [3, 4, 2, 5],
+    id: 'diatonic',
+    name: 'ダイアトニック',
+    desc: 'スケール上の全7コード。すべての進行の土台',
+    degrees: [0, 1, 2, 3, 4, 5, 6],
   },
   {
     id: 'loop',
     name: '循環コード',
-    // I - VI - II - V
+    desc: 'I-VI-II-V。ポップス・ジャズの最頻出ループ',
     degrees: [0, 5, 1, 4],
   },
   {
-    id: 'diatonic',
-    name: 'ダイアトニック',
-    degrees: [0, 1, 2, 3, 4, 5, 6],
+    id: 'royal',
+    name: '王道進行',
+    desc: 'IV-V-III-VI。J-popの定番、感情的な盛り上がり',
+    degrees: [3, 4, 2, 5],
+  },
+  {
+    id: 'canon',
+    name: 'カノン進行',
+    desc: 'I-V-VI-III-IV-I-IV-V。ポップス全般に使われる黄金進行',
+    degrees: [0, 4, 5, 2, 3, 0, 3, 4],
+  },
+  {
+    id: 'twofivelone',
+    name: 'ii-V-I',
+    desc: 'ジャズの基本。ドミナントモーションを体に染み込ませる',
+    degrees: [1, 4, 0],
   },
 ];
 

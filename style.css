@@ -141,9 +141,36 @@ header h1 {
 /* Progression display */
 .progression-display {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.preset-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  padding: 0 2px;
+}
+
+.cards-row {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+}
+
+.preset-item { display: contents; }
+
+.preset-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  margin-right: 6px;
+  flex-shrink: 0;
 }
 
 .chord-card {
@@ -231,6 +258,126 @@ header h1 {
 .detail-notes {
   font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+.bass-label {
+  font-size: 1.1rem;
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+/* Inversion tabs */
+.inv-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.inv-tab {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.inv-tab:hover { border-color: var(--accent); color: var(--text); }
+
+.inv-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.inv-tab-name { font-weight: 700; font-size: 0.78rem; }
+
+.inv-tab-notes {
+  font-size: 0.72rem;
+  opacity: 0.8;
+  letter-spacing: 0.02em;
+}
+
+/* Inversion note display (guitar mode) */
+.inversion-note-display {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inv-notes-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inv-note {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #818cf8;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.inv-note.bass {
+  color: #f59e0b;
+  border-color: #f59e0b;
+}
+
+.bass-tag {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #f59e0b;
+}
+
+.inv-sep {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.guitar-inv-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Piano legend */
+.piano-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
 /* Guitar diagram */
