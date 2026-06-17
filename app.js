@@ -271,7 +271,7 @@ function renderGuitarDiagram(chordName, inversionIndex, invData) {
 
   // Dots
   frets.forEach((f, i) => {
-    const x = padding + (strings - 1 - i) * cellW;
+    const x = padding + i * cellW;
     const isBassStr = i === bassStringIdx;
     if (f === null) {
       svg += `<text x="${x}" y="${padding - 12}" text-anchor="middle" fill="#ef4444" font-size="14">✕</text>`;
@@ -296,7 +296,7 @@ function renderGuitarDiagram(chordName, inversionIndex, invData) {
   const STRING_NAMES = ['E', 'A', 'D', 'G', 'B', 'e'];
   STRING_NAMES.forEach((name, i) => {
     if (frets[i] === null) return;
-    const x = padding + (strings - 1 - i) * cellW;
+    const x = padding + i * cellW;
     svg += `<text x="${x}" y="${padding + fretRange*cellH + 16}" text-anchor="middle" fill="#475569" font-size="10">${name}</text>`;
   });
 
