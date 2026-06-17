@@ -2,6 +2,7 @@ let state = {
   preset: PRESETS[0],
   key: 'C',
   mode: 'guitar',
+  chord7: false,
   selectedDegree: null,
   selectedInversion: 0,
   view: 'chords',            // 'chords' | 'scales'
@@ -22,6 +23,8 @@ function init() {
   });
   document.getElementById('modeGuitar').addEventListener('click', () => setMode('guitar'));
   document.getElementById('modePiano').addEventListener('click', () => setMode('piano'));
+  document.getElementById('chordTriad').addEventListener('click', () => setChord7(false));
+  document.getElementById('chord7th').addEventListener('click',   () => setChord7(true));
 
   document.querySelectorAll('.main-tab').forEach(tab => {
     tab.addEventListener('click', () => setView(tab.dataset.view));
@@ -98,6 +101,16 @@ function setMode(m) {
   }
 }
 
+function setChord7(v) {
+  state.chord7 = v;
+  state.selectedDegree = null;
+  state.selectedInversion = 0;
+  document.getElementById('chordTriad').classList.toggle('active', !v);
+  document.getElementById('chord7th').classList.toggle('active', v);
+  renderProgression();
+  clearDetail();
+}
+
 function renderProgression() {
   const container = document.getElementById('progressionDisplay');
   container.innerHTML = '';
@@ -111,20 +124,22 @@ function renderProgression() {
   cardsRow.className = 'cards-row';
 
   state.preset.degrees.forEach((degIdx, i) => {
-    const chordName = getChordName(state.key, degIdx, false);
+    const chordName = getChordName(state.key, degIdx, state.chord7);
     const degreeName = DEGREE_NAMES[degIdx];
-    const quality = DIATONIC_QUALITY[degIdx];
+    const quality = (state.chord7 ? DIATONIC_QUALITY_7 : DIATONIC_QUALITY)[degIdx];
     const fn = FUNCTION_LABELS[degreeName];
-    const romanDegree = quality === 'min' || quality === 'dim'
+    const romanDegree = (quality === 'min' || quality === 'dim' || quality === 'm7' || quality === 'm7b5')
       ? degreeName.toLowerCase()
       : degreeName;
 
     const card = document.createElement('div');
     card.className = 'chord-card' + (state.selectedDegree === i ? ' selected' : '');
-    const cardNotes = getChordNotes(state.key, degIdx);
+    const cardNotes = getChordNotes(state.key, degIdx, state.chord7);
+    const degreeSuffix = quality === 'dom' ? '7' : quality === 'dim' ? '°'
+      : quality === 'maj7' ? 'M7' : quality === 'm7' ? 'm7' : quality === 'm7b5' ? 'm7♭5' : '';
     card.innerHTML = `
       <div class="fn-label" style="color:${fn.color}">${fn.label}</div>
-      <div class="degree">${romanDegree}${quality === 'dom' ? '7' : quality === 'dim' ? '°' : ''}</div>
+      <div class="degree">${romanDegree}${degreeSuffix}</div>
       <div class="chord-name">${chordName}</div>
       <button class="card-play-btn play-btn" title="聴く">▶</button>
     `;
@@ -156,8 +171,8 @@ function showDetail(cardIndex, inversionIndex) {
   state.selectedDegree = cardIndex;
   state.selectedInversion = inversionIndex;
   const degIdx = state.preset.degrees[cardIndex];
-  const chordName = getChordName(state.key, degIdx, false);
-  const inversions = getChordInversions(state.key, degIdx);
+  const chordName = getChordName(state.key, degIdx, state.chord7);
+  const inversions = getChordInversions(state.key, degIdx, state.chord7);
   const currentInv = inversions[inversionIndex];
   const panel = document.getElementById('detailPanel');
 
@@ -181,7 +196,7 @@ function showDetail(cardIndex, inversionIndex) {
     instrumentHTML = renderPianoKeys(currentInv.notes, currentInv.bassNote);
   }
 
-  const rootNotes = getChordNotes(state.key, degIdx);
+  const rootNotes = getChordNotes(state.key, degIdx, state.chord7);
   panel.innerHTML = `
     <div class="detail-header">
       <span class="detail-chord">${chordName}</span>

@@ -14,7 +14,8 @@ function keyToChromatic(key) { return FLAT_TO_SHARP[key] || key; }
 const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11];
 
 // Diatonic chord qualities for major key
-const DIATONIC_QUALITY = ['maj', 'min', 'min', 'maj', 'dom', 'min', 'dim'];
+const DIATONIC_QUALITY   = ['maj',  'min', 'min', 'maj',  'dom', 'min', 'dim'];
+const DIATONIC_QUALITY_7 = ['maj7', 'm7',  'm7',  'maj7', 'dom', 'm7',  'm7b5'];
 
 const DEGREE_NAMES = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 
@@ -29,31 +30,37 @@ const FUNCTION_LABELS = {
 };
 
 // degree: 0-based index (0=I, 1=II, ...)
-function getChordName(key, degreeIndex, useLower) {
+function getChordName(key, degreeIndex, use7th) {
   const rootIndex = CHROMATIC.indexOf(keyToChromatic(key));
   const noteIndex = (rootIndex + MAJOR_SCALE[degreeIndex]) % 12;
   let note = CHROMATIC[noteIndex];
   if (FLAT_KEYS.has(key) && FLAT_NAMES[note]) note = FLAT_NAMES[note];
-  const q = DIATONIC_QUALITY[degreeIndex];
-  if (q === 'maj') return note;
-  if (q === 'min') return note + 'm';
-  if (q === 'dom') return note + '7';
-  if (q === 'dim') return note + 'dim';
+  const q = (use7th ? DIATONIC_QUALITY_7 : DIATONIC_QUALITY)[degreeIndex];
+  if (q === 'maj')  return note;
+  if (q === 'min')  return note + 'm';
+  if (q === 'dom')  return note + '7';
+  if (q === 'dim')  return note + 'dim';
+  if (q === 'maj7') return note + 'maj7';
+  if (q === 'm7')   return note + 'm7';
+  if (q === 'm7b5') return note + 'm7♭5';
   return note;
 }
 
 // Returns note names for a chord (maj=1,3,5 / min=1,b3,5 / dom=1,3,5,b7 / dim=1,b3,b5)
 const CHORD_INTERVALS = {
-  maj: [0, 4, 7],
-  min: [0, 3, 7],
-  dom: [0, 4, 7, 10],
-  dim: [0, 3, 6],
+  maj:  [0, 4, 7],
+  min:  [0, 3, 7],
+  dom:  [0, 4, 7, 10],
+  dim:  [0, 3, 6],
+  maj7: [0, 4, 7, 11],
+  m7:   [0, 3, 7, 10],
+  m7b5: [0, 3, 6, 10],
 };
 
-function getChordNotes(key, degreeIndex) {
+function getChordNotes(key, degreeIndex, use7th) {
   const rootIndex = CHROMATIC.indexOf(keyToChromatic(key));
   const scaleRoot = (rootIndex + MAJOR_SCALE[degreeIndex]) % 12;
-  const q = DIATONIC_QUALITY[degreeIndex];
+  const q = (use7th ? DIATONIC_QUALITY_7 : DIATONIC_QUALITY)[degreeIndex];
   return CHORD_INTERVALS[q].map(interval => {
     const idx = (scaleRoot + interval) % 12;
     let note = CHROMATIC[idx];
@@ -70,8 +77,8 @@ const INVERSION_NAMES = [
   ['第3転回形', '3rd Inversion'],
 ];
 
-function getChordInversions(key, degreeIndex) {
-  const notes = getChordNotes(key, degreeIndex);
+function getChordInversions(key, degreeIndex, use7th) {
+  const notes = getChordNotes(key, degreeIndex, use7th);
   return notes.map((_, i) => {
     const inv = [...notes.slice(i), ...notes.slice(0, i)];
     return {
@@ -441,6 +448,49 @@ const GUITAR_INV_VOICINGS = {
     { frets: [4,6,6,4,4,4], barre: 4, pos: '4fr' },          // 根音形
     { frets: [null,null,6,4,4,4], barre: 4, pos: '4fr' },    // 1st inv  B bass
     { frets: [null,6,6,4,4,null], barre: 4, pos: '4fr' },    // 2nd inv  D# bass
+  ],
+  // --- Diatonic 7th chords (7thモード用) ---
+  // Cmaj7 (C-E-G-B)
+  'Cmaj7': [
+    { frets: [null,3,2,0,0,0],    barre: null, pos: 'Open' }, // 根音  C bass
+    { frets: [0,3,2,0,0,0],      barre: null, pos: 'Open' }, // 1st   E bass
+    { frets: [3,null,2,0,0,0],   barre: null, pos: '3fr' },  // 2nd   G bass
+    { frets: [null,2,2,0,0,0],   barre: null, pos: 'Open' }, // 3rd   B bass
+  ],
+  // Dm7 (D-F-A-C)
+  'Dm7': [
+    { frets: [null,null,0,2,1,1], barre: null, pos: 'Open' }, // 根音  D bass
+    { frets: [1,null,0,2,1,1],   barre: null, pos: '1fr' },   // 1st   F bass
+    { frets: [null,0,0,2,1,1],   barre: null, pos: 'Open' },  // 2nd   A bass
+    { frets: [null,3,0,2,1,1],   barre: null, pos: 'Open' },  // 3rd   C bass
+  ],
+  // Em7 (E-G-B-D)
+  'Em7': [
+    { frets: [0,2,0,0,0,0],      barre: null, pos: 'Open' }, // 根音  E bass
+    { frets: [3,2,0,0,0,0],      barre: null, pos: '3fr' },  // 1st   G bass
+    { frets: [null,2,0,0,0,0],   barre: null, pos: 'Open' }, // 2nd   B bass
+    { frets: [null,null,0,0,0,0], barre: null, pos: 'Open' },// 3rd   D bass
+  ],
+  // Fmaj7 (F-A-C-E)
+  'Fmaj7': [
+    { frets: [null,null,3,2,1,0], barre: null, pos: 'Open' }, // 根音  F bass
+    { frets: [null,0,3,2,1,0],   barre: null, pos: 'Open' },  // 1st   A bass
+    { frets: [null,3,3,2,1,0],   barre: null, pos: '3fr' },   // 2nd   C bass
+    { frets: [0,null,3,2,1,0],   barre: null, pos: 'Open' },  // 3rd   E bass
+  ],
+  // Am7 (A-C-E-G)
+  'Am7': [
+    { frets: [null,0,2,0,1,0],   barre: null, pos: 'Open' }, // 根音  A bass
+    { frets: [null,3,2,0,1,0],   barre: null, pos: 'Open' }, // 1st   C bass
+    { frets: [0,0,2,0,1,0],     barre: null, pos: 'Open' },  // 2nd   E bass
+    { frets: [3,0,2,0,1,0],     barre: null, pos: '3fr' },   // 3rd   G bass
+  ],
+  // Bm7♭5 (B-D-F-A)
+  'Bm7♭5': [
+    { frets: [null,2,0,2,0,1],    barre: null, pos: 'Open' }, // 根音  B bass
+    { frets: [null,null,0,2,3,1], barre: null, pos: 'Open' }, // 1st   D bass
+    { frets: [1,null,0,2,0,1],   barre: null, pos: '1fr' },   // 2nd   F bass
+    { frets: [null,0,0,2,0,1],   barre: null, pos: 'Open' },  // 3rd   A bass
   ],
   // --- 7th chords ---
   'D7': [
