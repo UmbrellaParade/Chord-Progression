@@ -121,11 +121,17 @@ function renderProgression() {
 
     const card = document.createElement('div');
     card.className = 'chord-card' + (state.selectedDegree === i ? ' selected' : '');
+    const cardNotes = getChordNotes(state.key, degIdx);
     card.innerHTML = `
       <div class="fn-label" style="color:${fn.color}">${fn.label}</div>
       <div class="degree">${romanDegree}${quality === 'dom' ? '7' : quality === 'dim' ? '°' : ''}</div>
       <div class="chord-name">${chordName}</div>
+      <button class="card-play-btn play-btn" title="聴く">▶</button>
     `;
+    card.querySelector('.card-play-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      playChord(cardNotes);
+    });
     card.addEventListener('click', () => {
       state.selectedDegree = i;
       state.selectedInversion = 0;
@@ -175,10 +181,12 @@ function showDetail(cardIndex, inversionIndex) {
     instrumentHTML = renderPianoKeys(currentInv.notes, currentInv.bassNote);
   }
 
+  const rootNotes = getChordNotes(state.key, degIdx);
   panel.innerHTML = `
     <div class="detail-header">
       <span class="detail-chord">${chordName}</span>
       ${bassLabel}
+      <button class="play-btn detail-play-btn" onclick="playChord(${JSON.stringify(rootNotes)})">▶ 聴く</button>
     </div>
     <div class="inv-tabs">${tabsHTML}</div>
     ${instrumentHTML}
@@ -449,24 +457,55 @@ function renderScaleDisplay() {
       <span class="scale-title" style="color:${scale.color}">${scale.name}</span>
       <span class="scale-title-en">${scale.nameEn}</span>
       <span class="scale-key-badge">${key}</span>
+      <div class="scale-play-btns">
+        <button class="play-btn scale-play-btn" id="scalePlayBtn">▶ 聴く</button>
+        <button class="scale-stop-btn" id="scaleStopBtn" style="display:none">■ 停止</button>
+      </div>
     </div>
     <p class="scale-desc">${scale.desc}</p>
     <div class="scale-use">使用ジャンル: <strong>${scale.use}</strong></div>
 
     <div class="scale-body">
-      <div class="scale-degrees">${degreeRows}</div>
+      <div class="scale-degrees" id="scaleDegreeList">${degreeRows}</div>
       <div class="scale-instrument">${instrument}</div>
     </div>
 
-    <div class="scale-notes-row">
+    <div class="scale-notes-row" id="scaleNotesRow">
       ${notes.map((n, i) => `
-        <div class="scale-note-chip${i === 0 ? ' root' : ''}" style="${i === 0 ? '' : `border-color:${scale.color}40`}">
+        <div class="scale-note-chip${i === 0 ? ' root' : ''}" data-note-idx="${i}" style="${i === 0 ? '' : `border-color:${scale.color}40`}">
           <span class="snc-deg">${scale.degrees[i]}</span>
           <span class="snc-note">${n}</span>
         </div>
       `).join('<span class="scale-note-sep">·</span>')}
     </div>
   `;
+
+  // スケール再生ボタンのイベント
+  const playBtn  = panel.querySelector('#scalePlayBtn');
+  const stopBtn  = panel.querySelector('#scaleStopBtn');
+  const noteChips = () => panel.querySelectorAll('.scale-note-chip');
+
+  playBtn.addEventListener('click', () => {
+    playBtn.style.display  = 'none';
+    stopBtn.style.display  = '';
+    playScale(notes, stepIdx => {
+      noteChips().forEach(c => c.classList.remove('playing'));
+      if (stepIdx >= 0) {
+        const chip = panel.querySelector(`[data-note-idx="${stepIdx}"]`);
+        if (chip) chip.classList.add('playing');
+      } else {
+        playBtn.style.display = '';
+        stopBtn.style.display = 'none';
+      }
+    });
+  });
+
+  stopBtn.addEventListener('click', () => {
+    stopAudio();
+    noteChips().forEach(c => c.classList.remove('playing'));
+    playBtn.style.display = '';
+    stopBtn.style.display = 'none';
+  });
 }
 
 // ---- Scale Fretboard ----
